@@ -97,3 +97,23 @@ export const THEMES: Record<ThemeFamily, ThemeColors> = {
 export function getTheme(family: ThemeFamily): ThemeColors {
   return THEMES[family];
 }
+
+export type AppTheme = 'dark' | 'light' | 'system';
+
+const APP_THEME_KEY = 'tbx_app_theme';
+
+export function getAppTheme(): AppTheme {
+  const stored = localStorage.getItem(APP_THEME_KEY) as AppTheme | null;
+  return stored || 'system';
+}
+
+export function setAppTheme(theme: AppTheme): void {
+  localStorage.setItem(APP_THEME_KEY, theme);
+}
+
+export function resolveTheme(theme: AppTheme): 'dark' | 'light' {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  return theme;
+}
