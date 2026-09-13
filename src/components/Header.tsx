@@ -1,7 +1,8 @@
-import { Menu, Volume2, VolumeX, Wallet as WalletIcon, TrendingUp, Lock, ChevronRight } from 'lucide-react';
+import { Menu, Volume2, VolumeX, Wallet as WalletIcon, TrendingUp, Lock, ChevronRight, Search, Sun, Moon, Monitor } from 'lucide-react';
 import { getRankProgress } from '@/lib/ranks';
 import { PAYOUT_THRESHOLD } from '@/lib/wallet';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
+import type { AppTheme } from '@/lib/theme';
 
 interface HeaderProps {
   balance: number;
@@ -13,11 +14,20 @@ interface HeaderProps {
   onOpenPayout: () => void;
   onGoHome: () => void;
   isHome: boolean;
+  onOpenSearch: () => void;
+  appTheme: AppTheme;
+  onThemeChange: (theme: AppTheme) => void;
 }
 
-export function Header({ balance, lifetimeEarned, streak, audioEnabled, onToggleAudio, onOpenMobileNav, onOpenPayout, onGoHome, isHome }: HeaderProps) {
+export function Header({ balance, lifetimeEarned, streak, audioEnabled, onToggleAudio, onOpenMobileNav, onOpenPayout, onGoHome, isHome, onOpenSearch, appTheme, onThemeChange }: HeaderProps) {
   const { current, next } = getRankProgress(lifetimeEarned);
   const canPayout = balance >= PAYOUT_THRESHOLD;
+
+  const themeOptions: { id: AppTheme; icon: typeof Sun; label: string }[] = [
+    { id: 'light', icon: Sun, label: 'Light' },
+    { id: 'dark', icon: Moon, label: 'Dark' },
+    { id: 'system', icon: Monitor, label: 'System' },
+  ];
 
   return (
     <header className="sticky top-0 z-30 glass-panel border-b border-white/5">
@@ -40,9 +50,38 @@ export function Header({ balance, lifetimeEarned, streak, audioEnabled, onToggle
           </button>
         </div>
 
+        {/* Search trigger */}
+        <button
+          onClick={onOpenSearch}
+          className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl glass-card text-slate-400 hover:text-cyan-300 transition-all hover:scale-[1.02] min-w-[200px]"
+        >
+          <Search className="w-4 h-4" />
+          <span className="text-xs">Search tools...</span>
+          <kbd className="ml-auto px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono">⌘K</kbd>
+        </button>
+
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Theme toggle */}
+          <div className="flex items-center gap-0.5 p-0.5 rounded-xl glass-card">
+            {themeOptions.map(opt => {
+              const Icon = opt.icon;
+              const isActive = appTheme === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => onThemeChange(opt.id)}
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${isActive ? 'scale-105' : 'hover:scale-105'}`}
+                  style={isActive ? { background: 'linear-gradient(135deg, rgba(34,211,238,0.15), rgba(167,139,250,0.1))' } : {}}
+                  title={`${opt.label} theme`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
+                </button>
+              );
+            })}
+          </div>
+
           {/* Cybernetic Badge Plate */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl relative overflow-hidden" style={{ background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.25)' }}>
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl relative overflow-hidden" style={{ background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.25)' }}>
             <div className="absolute inset-0 opacity-20 animate-breathe" style={{ background: 'radial-gradient(ellipse at center, rgba(167,139,250,0.3), transparent 70%)' }} />
             <span className="text-base font-black text-violet-300 relative">{current.badge}</span>
             <div className="relative">

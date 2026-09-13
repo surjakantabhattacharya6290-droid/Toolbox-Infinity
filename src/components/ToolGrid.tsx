@@ -1,25 +1,33 @@
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { TOOLS, type ToolId } from '@/lib/relations';
+import { TOOLS, type ToolId, type ToolCategory } from '@/lib/relations';
 import { getTheme } from '@/lib/theme';
 import { playChime } from '@/lib/audio';
+import { isFavorite, toggleFavorite } from '@/lib/favorites';
+import { useState } from 'react';
 
 interface ToolGridProps {
   onSelectTool: (id: ToolId) => void;
+  category: ToolCategory;
+  favorites: string[];
+  onToggleFavorite: (id: ToolId) => void;
 }
 
-export function ToolGrid({ onSelectTool }: ToolGridProps) {
+export function ToolGrid({ onSelectTool, category, favorites, onToggleFavorite }: ToolGridProps) {
+  const filtered = category === 'all' ? TOOLS : TOOLS.filter(t => t.category === category);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {TOOLS.map((tool, idx) => {
+      {filtered.map((tool, idx) => {
         const Icon = (Icons as unknown as Record<string, LucideIcon | undefined>)[tool.icon] ?? Icons.Box;
         const theme = getTheme(tool.theme);
+        const fav = favorites.includes(tool.id);
         return (
-          <button
+          <div
             key={tool.id}
-            onClick={() => { onSelectTool(tool.id); playChime(600, 900); }}
-            className="group glass-card rounded-2xl p-5 text-left transition-all duration-300 hover:scale-[1.04] hover:-translate-y-1 relative overflow-hidden"
+            className="group glass-card rounded-2xl p-5 text-left transition-all duration-300 hover:scale-[1.04] hover:-translate-y-1 relative overflow-hidden cursor-pointer"
             style={{ animationDelay: `${idx * 50}ms` }}
+            onClick={() => { onSelectTool(tool.id); playChime(600, 900); }}
           >
             {/* Hover glow layer */}
             <div
@@ -32,6 +40,18 @@ export function ToolGrid({ onSelectTool }: ToolGridProps) {
               className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity"
               style={{ background: `linear-gradient(90deg, transparent, ${theme.primary}, transparent)` }}
             />
+
+            {/* Favorite star */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite(tool.id); }}
+              className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 transition-colors z-10"
+              title={fav ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {fav
+                ? <Icons.Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                : <Icons.Star className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              }
+            </button>
 
             <div className="relative">
               <div
@@ -51,12 +71,12 @@ export function ToolGrid({ onSelectTool }: ToolGridProps) {
                   className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
                   style={{ background: theme.chipBg, color: theme.chipText, border: `1px solid ${theme.chipBorder}` }}
                 >
-                  {tool.category}
+                  {tool.categoryLabel}
                 </span>
                 <Icons.ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-300 group-hover:translate-x-1 transition-all" />
               </div>
             </div>
-          </button>
+          </div>
         );
       })}
     </div>
